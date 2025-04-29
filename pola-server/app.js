@@ -2,13 +2,13 @@
     dotenv.config();
     const express = require("express");
     const cors = require("cors");
-    const connectDB = require("./config/db");
     const helmet = require("helmet");
-    const corsOptions = {
-    origin: "http://localhost:5173", 
-    credentials: true,
-};
+    const connectDB = require("./config/db");
 
+    const corsOptions = {
+    origin: ["http://localhost:5173", "https://pola-fullstack-1.onrender.com"],
+    credentials: true,
+    };
 
     const authRoutes = require("./routes/authRoutes");
     const productRoutes = require("./routes/productRoutes");
@@ -21,17 +21,16 @@
     const userRoutes = require("./routes/userRoutes");
     const adminRoutes = require("./routes/adminRoutes");
 
-
     const app = express();
 
     // Connect to MongoDB
     connectDB();
 
     // Middleware
-    app.use(cors());
+    app.use(cors(corsOptions));
     app.use(express.json());
     app.use(helmet());
-    app.use(cors(corsOptions));
+
     // API Routes
     app.use("/api/auth", authRoutes);
     app.use("/api/products", productRoutes);
