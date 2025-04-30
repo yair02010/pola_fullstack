@@ -1,10 +1,10 @@
     import { useEffect, useState } from "react";
-    import axios from "axios";
-    import { motion } from "framer-motion";
     import { Formik, Form, Field, ErrorMessage } from "formik";
-    import * as Yup from "yup";
-    import { toast } from "react-toastify";
+    import { fetchProfile, updateProfile, fetchMyOrders } from "../services/userService";
     import { useCart } from "../contexts/CartContext";
+    import { motion } from "framer-motion";
+    import { toast } from "react-toastify";
+    import * as Yup from "yup";
     import "../styles/Profile.css";
 
     export default function Profile() {
@@ -14,33 +14,18 @@
     const { addToCart } = useCart();
 
     useEffect(() => {
-        fetchProfile();
-        fetchOrders();
+        const loadData = async () => {
+        try {
+            const profile = await fetchProfile();
+            const orderData = await fetchMyOrders();
+            setUser(profile);
+            setOrders(orderData);
+        } catch (err) {
+            console.error("Failed loading profile/orders:", err);
+        }
+        };
+        loadData();
     }, []);
-
-    const fetchProfile = async () => {
-        try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/auth/me", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data);
-        } catch (err) {
-        console.error("Failed to fetch user profile:", err);
-        }
-    };
-
-    const fetchOrders = async () => {
-        try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/orders/my", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setOrders(res.data.orders || []);
-        } catch (err) {
-        console.error("Failed to fetch orders:", err);
-        }
-    };
 
     const profileSchema = Yup.object().shape({
         name: Yup.string().min(2).max(100).required(),
@@ -93,14 +78,8 @@
             validationSchema={profileSchema}
             onSubmit={async (values) => {
                 try {
-                const token = localStorage.getItem("token");
-                const res = await axios.put("http://localhost:5000/api/auth/profile", values, {
-                    headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    },
-                });
-                setUser(res.data);
+                const updated = await updateProfile(values);
+                setUser(updated);
                 setEditMode(false);
                 toast.success("Profile updated successfully 🎉");
                 } catch (err) {
@@ -111,6 +90,7 @@
             >
             {({ resetForm }) => (
                 <Form className="profile-card profile-form">
+                {/* All input fields */}
                 <div className="mb-3">
                     <label>Name</label>
                     <Field name="name" className="form-control" />
@@ -124,7 +104,6 @@
                 <div className="mb-3">
                     <label>Phone</label>
                     <Field name="phone" className="form-control" />
-                    <ErrorMessage name="phone" component="div" className="text-danger small" />
                 </div>
                 <div className="row">
                     <div className="col-md-6 mb-3">
@@ -162,21 +141,16 @@
                 </div>
                 <div className="d-flex gap-3">
                     <button type="submit" className="btn-save">Save Changes</button>
-                    <button
-                    type="button"
-                    className="btn-cancel"
-                    onClick={() => {
-                        resetForm();
-                        setEditMode(false);
-                        toast.info("Changes canceled 🛑");
-                    }}
-                    >Cancel</button>
+                    <button type="button" className="btn-cancel" onClick={() => { resetForm(); setEditMode(false); toast.info("Changes canceled 🛑"); }}>
+                    Cancel
+                    </button>
                 </div>
                 </Form>
             )}
             </Formik>
         )}
 
+        {/* Orders section */}
         <h4 className="section-title mt-5">📦 My Orders</h4>
 
         {orders.length === 0 ? (
@@ -215,21 +189,16 @@
                     <tbody>
                     {order.items.map((item, j) => (
                         <tr key={j}>
-                        <td>{item.product?.name}</td>
+                        <td>{item.name}</td>
                         <td>{item.quantity}</td>
                         <td>₪{item.price}</td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
-                <button
-                    className="btn-reorder mt-2"
-                    onClick={() => {
-                    order.items.forEach((item) =>
-                        addToCart({ ...item.product, quantity: item.quantity })
-                    );
-                    }}
-                >
+                <button className="btn-reorder mt-2" onClick={() => {
+                    order.items.forEach((item) => addToCart({ ...item.product, quantity: item.quantity }));
+                }}>
                     🛒 Reorder
                 </button>
                 </div>

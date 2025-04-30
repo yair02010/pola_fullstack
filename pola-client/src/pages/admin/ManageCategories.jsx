@@ -1,22 +1,24 @@
     import { useEffect, useState } from "react";
-    import axios from "axios";
-    import "../../styles/AdminTables.css"; 
+    import {
+    fetchCategories,
+    addCategory,
+    deleteCategory,
+    } from "../../services/categoryService";
+    import "../../styles/AdminTables.css";
 
     export default function ManageCategories() {
     const [categories, setCategories] = useState([]);
     const [name, setName] = useState("");
 
     useEffect(() => {
-        fetchCategories();
+        loadCategories();
     }, []);
 
-    const fetchCategories = async () => {
+    const loadCategories = async () => {
         try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/categories", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setCategories(res.data);
+        const data = await fetchCategories(token);
+        setCategories(data);
         } catch (err) {
         console.error("Failed to fetch categories:", err);
         }
@@ -28,14 +30,8 @@
 
         try {
         const token = localStorage.getItem("token");
-        const res = await axios.post(
-            "http://localhost:5000/api/categories",
-            { name },
-            {
-            headers: { Authorization: `Bearer ${token}` },
-            }
-        );
-        setCategories((prev) => [...prev, res.data]);
+        const newCategory = await addCategory(name, token);
+        setCategories((prev) => [...prev, newCategory]);
         setName("");
         } catch (err) {
         console.error("Failed to add category:", err);
@@ -47,9 +43,7 @@
 
         try {
         const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:5000/api/categories/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        await deleteCategory(id, token);
         setCategories((prev) => prev.filter((cat) => cat._id !== id));
         } catch (err) {
         console.error("Failed to delete category:", err);
@@ -93,7 +87,9 @@
                 categories.map((cat) => (
                     <tr key={cat._id}>
                     <td data-label="Name">{cat.name}</td>
-                    <td data-label="Created">{new Date(cat.createdAt).toLocaleDateString()}</td>
+                    <td data-label="Created">
+                        {new Date(cat.createdAt).toLocaleDateString()}
+                    </td>
                     <td data-label="Actions">
                         <button
                         className="edit-status-btn"

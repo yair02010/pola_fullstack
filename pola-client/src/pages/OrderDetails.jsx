@@ -1,55 +1,132 @@
     import { useEffect, useState } from "react";
     import { useParams, Link } from "react-router-dom";
-    import axios from "axios";
+    import { Container, Table, Spinner } from "react-bootstrap";
+    import { getOrderById } from "../services/orderService";
 
     export default function OrderDetails() {
     const { id } = useParams();
     const [order, setOrder] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchOrder = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:5000/api/orders/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-            setOrder(res.data);
+            const data = await getOrderById(id, token);
+            setOrder(data);
         } catch (err) {
-            console.error("Error loading order", err);
+            console.error("Failed to fetch order:", err);
+        } finally {
+            setLoading(false);
         }
         };
 
         fetchOrder();
     }, [id]);
 
-    if (!order) return <div className="container py-5">Loading order...</div>;
+    if (loading) {
+        return (
+        <Container className="py-5 text-center">
+            <Spinner animation="border" variant="primary" />
+        </Container>
+        );
+    }
+
+    if (!order) {
+        return (
+        <Container className="py-5 text-center">
+            <h3 className="text-danger">Order not found.</h3>
+        </Container>
+        );
+    }
+
+    const {
+        _id,
+        createdAt,
+        status,
+        totalAmount,
+        user,
+        deliveryMethod,
+        paymentMethod,
+        shippingAddress,
+        items,
+    } = order;
+
+    const formatAddress = () => {
+        if (!shippingAddress || !shippingAddress.city) return "—";
+        return `${shippingAddress.street || ""} ${shippingAddress.houseNumber || ""}, ${shippingAddress.city || ""} ${shippingAddress.zipCode || ""}`;
+    };
 
     return (
-        <div className="container py-5">
-        <h2 className="fw-bold mb-4">🧾 Order Details</h2>
+        <Container className="py-5">
+        <h2 className="fw-bold mb-4">📄 Order Details</h2>
 
-        <p><strong>Order ID:</strong> {order._id}</p>
-        <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
-        <p><strong>Status:</strong> <span className={`badge bg-${order.status === "paid" ? "success" : "secondary"}`}>{order.status}</span></p>
-        <p><strong>Total:</strong> ₪{order.total}</p>
+        <p><strong>Order ID:</strong> {_id}</p>
+        <p><strong>Date:</strong> {new Date(createdAt).toLocaleDateString()}</p>
+        <p><strong>Status:</strong> {status}</p>
+        <p><strong>Total:</strong> ₪{totalAmount}</p>
 
         <hr />
 
-        <h5 className="fw-bold">Items:</h5>
-        <ul className="list-group">
-            {order.items.map((item, index) => (
-            <li key={index} className="list-group-item d-flex justify-content-between">
-                <div>
-                {item.name} (x{item.quantity})
-                </div>
-                <div>₪{item.price * item.quantity}</div>
-            </li>
-            ))}
-        </ul>
+        <h5>👤 Customer:</h5>
+        <p><strong>Name:</strong> {user?.name}</p>
+        <p><strong>Email:</strong> {user?.email}</p>
+        <p><strong>Phone:</strong> {user?.phone}</p>
 
-        <div className="mt-4">
-            <Link to="/my-orders" className="btn btn-outline-dark">Back to My Orders</Link>
+        <h5 className="mt-4">📦 Delivery Method:</h5>
+        <p>{deliveryMethod === "pickup" ? "Pickup from Store" : "Home Delivery"}</p>
+
+        {deliveryMethod === "delivery" && (
+            <>
+            <h5 className="mt-3">🏠 Shipping Address:</h5>
+            <p>{formatAddress()}</p>
+            </>
+        )}
+
+        <h5 className="mt-3">💳 Payment Method:</h5>
+        <p>
+            {paymentMethod === "credit_card"
+            ? "Credit Card (Stripe)"
+            : paymentMethod === "cash_in_store"
+            ? "Cash in Store"
+            : "Cash on Delivery"}
+        </p>
+
+        <h4 className="mt-4">🛍 Items:</h4>
+        <Table striped bordered hover responsive>
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Image</th>
+                <th>Quantity</th>
+                <th>Price (₪)</th>
+                <th>Total (₪)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {items.map((item, index) => (
+                <tr key={index}>
+                <td>{item.name}</td>
+                <td>
+                    <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "6px" }}
+                    />
+                </td>
+                <td>{item.quantity}</td>
+                <td>₪{item.price}</td>
+                <td>₪{item.price * item.quantity}</td>
+                </tr>
+            ))}
+            </tbody>
+        </Table>
+
+        <div className="text-center mt-4">
+            <Link to="/my-orders" className="btn btn-outline-primary">
+            🔙 Back to My Orders
+            </Link>
         </div>
-        </div>
+        </Container>
     );
     }

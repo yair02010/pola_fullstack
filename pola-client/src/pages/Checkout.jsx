@@ -1,7 +1,10 @@
+    // Checkout.jsx
     import { useCart } from "../contexts/CartContext";
-    import axios from "axios";
     import { useState, useEffect } from "react";
     import { useNavigate } from "react-router-dom";
+    import { createOrder } from "../services/orderService";
+    import { createStripeSession } from "../services/paymentService";
+    import { getMyProfile } from "../services/userService";
 
     export default function Checkout() {
     const { cart } = useCart();
@@ -25,12 +28,9 @@
 
     useEffect(() => {
         const fetchUser = async () => {
-        const token = localStorage.getItem("token");
         try {
-            const res = await axios.get("http://localhost:5000/api/auth/me", {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-            setUserAddress(res.data.address || {});
+            const user = await getMyProfile();
+            setUserAddress(user.address || {});
         } catch (err) {
             console.error("Failed to fetch user address:", err);
         }
@@ -39,8 +39,6 @@
     }, []);
 
     const handleCheckout = async () => {
-        const token = localStorage.getItem("token");
-
         const shippingAddress =
         deliveryMethod === "delivery"
             ? useCustomAddress
@@ -60,20 +58,15 @@
 
         try {
         if (paymentMethod === "credit_card") {
-            const res = await axios.post("http://localhost:5000/api/payments/checkout", orderPayload, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-            if (res.data?.url) {
-            window.location.href = res.data.url;
+            const res = await createStripeSession(orderPayload);
+            if (res.url) {
+            window.location.href = res.url;
             } else {
             alert("Stripe redirect failed.");
             }
         } else {
-            const res = await axios.post("http://localhost:5000/api/orders", orderPayload, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-
-            navigate(`/success?orderId=${res.data._id}`);
+            const order = await createOrder(orderPayload);
+            navigate(`/success?orderId=${order._id}`);
         }
         } catch (err) {
         console.error("Checkout error:", err);
@@ -84,15 +77,17 @@
     return (
         <div className="container py-5">
         <h2 className="fw-bold mb-4 text-center">🛒 Checkout</h2>
-
         <div className="mb-3">
             <label className="form-label">Delivery Method:</label>
-            <select className="form-select" value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)}>
+            <select
+            className="form-select"
+            value={deliveryMethod}
+            onChange={(e) => setDeliveryMethod(e.target.value)}
+            >
             <option value="pickup">Pickup from Store</option>
             <option value="delivery">Delivery to your address</option>
             </select>
         </div>
-
         {deliveryMethod === "delivery" && (
             <>
             <div className="form-check mb-2">
@@ -107,17 +102,26 @@
                 Use different address
                 </label>
             </div>
-
             {useCustomAddress && (
                 <div className="row">
-                {["street", "houseNumber", "city", "zipCode", "floor", "apartment", "entrance"].map((field) => (
+                {[
+                    "street",
+                    "houseNumber",
+                    "city",
+                    "zipCode",
+                    "floor",
+                    "apartment",
+                    "entrance",
+                ].map((field) => (
                     <div className="col-md-6 mb-3" key={field}>
                     <input
                         type="text"
                         className="form-control"
                         placeholder={field}
                         value={customAddress[field]}
-                        onChange={(e) => setCustomAddress({ ...customAddress, [field]: e.target.value })}
+                        onChange={(e) =>
+                        setCustomAddress({ ...customAddress, [field]: e.target.value })
+                        }
                     />
                     </div>
                 ))}
@@ -128,7 +132,11 @@
 
         <div className="mb-3">
             <label className="form-label">Payment Method:</label>
-            <select className="form-select" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+            <select
+            className="form-select"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            >
             <option value="credit_card">Credit Card (Stripe)</option>
             <option value="cash_in_store">Cash in Store</option>
             <option value="cash_on_delivery">Cash on Delivery</option>

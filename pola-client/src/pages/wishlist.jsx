@@ -1,32 +1,30 @@
     import { useEffect, useState } from "react";
     import { Link } from "react-router-dom";
-    import axios from "axios";
+    import { fetchWishlist, removeFromWishlist } from "../services/wishlistService";
     import "../styles/Wishlist.css";
 
     export default function Wishlist() {
     const [wishlist, setWishlist] = useState([]);
 
     useEffect(() => {
-        const fetchWishlist = async () => {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/users/wishlist", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setWishlist(res.data);
+        const loadWishlist = async () => {
+        try {
+            const data = await fetchWishlist();
+            setWishlist(data);
+        } catch (err) {
+            console.error("Failed to load wishlist:", err);
+        }
         };
 
-        fetchWishlist();
+        loadWishlist();
     }, []);
 
     const handleRemove = async (id) => {
-        const token = localStorage.getItem("token");
         try {
-        await axios.delete(`http://localhost:5000/api/users/wishlist/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        await removeFromWishlist(id);
         setWishlist((prev) => prev.filter((p) => p._id !== id));
         } catch (err) {
-        console.error("Failed to remove item:", err);
+        console.error("Failed to remove from wishlist:", err);
         }
     };
 
@@ -40,11 +38,7 @@
                 {wishlist.map((product) => (
                 <div key={product._id} className="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-4">
                     <div className="card product-card h-100 position-relative">
-                    <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="card-img-top"
-                    />
+                    <img src={product.imageUrl} alt={product.name} className="card-img-top" />
 
                     <button
                         className="wishlist-remove-btn"

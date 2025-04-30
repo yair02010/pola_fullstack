@@ -1,8 +1,7 @@
     import { useEffect, useState } from "react";
-    import { Link } from "react-router-dom";
-    import axios from "axios";
+    import { fetchProducts, fetchCategories } from "../services/shopService";
     import ProductCard from "../components/ProductCard";
-    import "../styles/Shop.css"; // ודא שהקובץ קיים
+    import "../styles/Shop.css";
 
     export default function Shop() {
     const [products, setProducts] = useState([]);
@@ -13,8 +12,7 @@
     const [sort, setSort] = useState("");
 
     useEffect(() => {
-        fetchProducts();
-        fetchCategories();
+        loadShopData();
     }, []);
 
     useEffect(() => {
@@ -41,28 +39,21 @@
         setFiltered(list);
     }, [selectedCategory, products, search, sort]);
 
-    const fetchProducts = async () => {
+    const loadShopData = async () => {
         try {
-        const res = await axios.get("http://localhost:5000/api/products");
-        setProducts(res.data);
+        const productsData = await fetchProducts();
+        const categoriesData = await fetchCategories();
+        setProducts(productsData);
+        setCategories(categoriesData);
         } catch (err) {
-        console.error("Error loading products:", err);
-        }
-    };
-
-    const fetchCategories = async () => {
-        try {
-        const res = await axios.get("http://localhost:5000/api/categories");
-        setCategories(res.data);
-        } catch (err) {
-        console.error("Error loading categories:", err);
+        console.error("Error loading shop data:", err);
         }
     };
 
     return (
         <div className="container shop-page">
         <div className="row">
-            {/* Sidebar Filters */}
+            {/* Sidebar */}
             <div className="col-md-3 mb-4">
             <h5 className="fw-bold mb-3">Filter by Category</h5>
             <ul className="list-group">
@@ -86,7 +77,7 @@
             </ul>
             </div>
 
-            {/* Main Content */}
+            {/* Main */}
             <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <h4 className="fw-bold m-0">Shop Items</h4>

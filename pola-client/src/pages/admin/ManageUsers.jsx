@@ -1,6 +1,6 @@
     import { useEffect, useState } from "react";
-    import axios from "axios";
-    import "../../styles/AdminTables.css";
+    import { fetchAllUsers, deleteUserById } from "../../services/userService"; // ודא שהייבוא נכון
+    import { toast } from "react-toastify";
 
     export default function ManageUsers() {
     const [users, setUsers] = useState([]);
@@ -12,10 +12,8 @@
     const fetchUsers = async () => {
         try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/users/all", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(res.data);
+        const res = await fetchAllUsers(token);  
+        setUsers(res);  
         } catch (err) {
         console.error("Failed to fetch users:", err);
         }
@@ -26,12 +24,12 @@
 
         try {
         const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:5000/api/users/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers((prev) => prev.filter((u) => u._id !== userId));
+        await deleteUserById(userId, token);  
+        setUsers((prev) => prev.filter((u) => u._id !== userId));  
+        toast.success("User deleted successfully ✅");
         } catch (err) {
         console.error("Failed to delete user:", err);
+        toast.error("Failed to delete user ❌");
         }
     };
 

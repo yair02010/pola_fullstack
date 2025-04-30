@@ -1,7 +1,7 @@
-    import { useParams, Link } from "react-router-dom";
     import { useEffect, useState } from "react";
-    import axios from "axios";
+    import { useParams, Link } from "react-router-dom";
     import { Container, Table, Spinner } from "react-bootstrap";
+    import { getOrderById } from "../services/orderService";
 
     export default function OrderDetails() {
     const { id } = useParams();
@@ -12,10 +12,8 @@
         const fetchOrder = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:5000/api/orders/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-            setOrder(res.data);
+            const data = await getOrderById(id, token);
+            setOrder(data);
         } catch (err) {
             console.error("Failed to fetch order:", err);
         } finally {
@@ -63,25 +61,25 @@
         <Container className="py-5">
         <h2 className="fw-bold mb-4">📄 Order Details</h2>
 
-        <p><strong>Order ID:</strong> { _id }</p>
-        <p><strong>Date:</strong> { new Date(createdAt).toLocaleDateString() }</p>
-        <p><strong>Status:</strong> { status }</p>
-        <p><strong>Total:</strong> ₪{ totalAmount }</p>
+        <p><strong>Order ID:</strong> {_id}</p>
+        <p><strong>Date:</strong> {new Date(createdAt).toLocaleDateString()}</p>
+        <p><strong>Status:</strong> {status}</p>
+        <p><strong>Total:</strong> ₪{totalAmount}</p>
 
         <hr />
 
         <h5>👤 Customer:</h5>
-        <p><strong>Name:</strong> { user?.name }</p>
-        <p><strong>Email:</strong> { user?.email }</p>
-        <p><strong>Phone:</strong> { user?.phone }</p>
+        <p><strong>Name:</strong> {user?.name}</p>
+        <p><strong>Email:</strong> {user?.email}</p>
+        <p><strong>Phone:</strong> {user?.phone}</p>
 
         <h5 className="mt-4">📦 Delivery Method:</h5>
-        <p>{ deliveryMethod === "pickup" ? "Pickup from Store" : "Home Delivery" }</p>
+        <p>{deliveryMethod === "pickup" ? "Pickup from Store" : "Home Delivery"}</p>
 
         {deliveryMethod === "delivery" && (
             <>
             <h5 className="mt-3">🏠 Shipping Address:</h5>
-            <p>{ formatAddress() }</p>
+            <p>{formatAddress()}</p>
             </>
         )}
 

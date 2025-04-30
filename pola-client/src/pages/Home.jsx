@@ -1,34 +1,27 @@
-    import { useEffect, useState } from "react";
-    import axios from "axios";
-    import ProductCard from "../components/ProductCard";
-    import "../styles/Home.css";
+import { useEffect, useState } from "react";
+import { getAllProducts, getAllCategories } from "../services/productService";
+import ProductCard from "../components/ProductCard";
+import "../styles/Home.css";
 
-    export default function Home() {
+export default function Home() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        const fetchProducts = async () => {
-        try {
-            const res = await axios.get("http://localhost:5000/api/products");
-            setProducts(res.data);
-        } catch (err) {
-            console.error("Error loading products:", err);
-        }
-        };
+    const fetchData = async () => {
+    try {
+        const productsData = await getAllProducts();
+        setProducts(productsData);
 
-        const fetchCategories = async () => {
-        try {
-            const res = await axios.get("http://localhost:5000/api/categories");
-            setCategories(res.data);
-        } catch (err) {
-            console.error("Error loading categories:", err);
-        }
-        };
+        const categoriesData = await getAllCategories();
+        setCategories(categoriesData);
+    } catch (err) {
+        console.error("Error loading data:", err);
+    }
+    };
 
-        fetchProducts();
-        fetchCategories();
-    }, []);
+    fetchData();
+}, []);
 
     return (
         <div className="home-page">

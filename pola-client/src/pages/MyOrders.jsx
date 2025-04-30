@@ -1,5 +1,5 @@
     import { useEffect, useState } from "react";
-    import axios from "axios";
+    import { getMyOrders } from "../services/orderService";
 
     export default function MyOrders() {
     const [orders, setOrders] = useState(null);
@@ -8,10 +8,8 @@
         const fetchOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("http://localhost:5000/api/orders/mine", {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-            setOrders(res.data);
+            const data = await getMyOrders(token);
+            setOrders(data);
         } catch (err) {
             console.error("Failed to fetch orders", err);
             setOrders([]);
@@ -45,9 +43,11 @@
                     <tr key={order._id}>
                     <td>{order._id}</td>
                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>₪{order.total}</td>
+                    <td>₪{order.totalAmount}</td>
                     <td>
-                        <span className={`badge bg-${order.status === "paid" ? "success" : "secondary"}`}>
+                        <span
+                        className={`badge bg-${order.status === "paid" ? "success" : "secondary"}`}
+                        >
                         {order.status}
                         </span>
                     </td>

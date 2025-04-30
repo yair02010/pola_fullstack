@@ -1,10 +1,10 @@
     import { useEffect, useState } from "react";
     import { useParams, Link } from "react-router-dom";
-    import axios from "axios";
     import { useCart } from "../contexts/CartContext";
     import { toast } from "react-toastify";
     import { motion } from "framer-motion";
     import { FaShoppingCart } from "react-icons/fa";
+    import { getProductById } from "../services/productService";
     import "../styles/ProductPage.css";
 
     export default function ProductPage() {
@@ -15,8 +15,8 @@
     useEffect(() => {
         const fetchProduct = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/products/${id}`);
-            setProduct(res.data);
+            const data = await getProductById(id);
+            setProduct(data);
         } catch (err) {
             console.error("Product not found:", err);
         }

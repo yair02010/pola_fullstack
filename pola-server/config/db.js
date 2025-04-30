@@ -2,10 +2,15 @@
 
     const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log("MongoDB Connected");
+        const mongoUri = process.env.NODE_ENV === "production"
+        ? process.env.MONGO_ATLAS_URI
+        : process.env.MONGO_LOCAL_URI;
+
+        await mongoose.connect(mongoUri);
+
+        console.log("MongoDB Connected ✅");
     } catch (err) {
-        console.error("DB Error:", err);
+        console.error("MongoDB Connection Error:", err);
         process.exit(1);
     }
     };

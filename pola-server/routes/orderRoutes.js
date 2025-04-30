@@ -1,14 +1,13 @@
-    const express = require("express");
-    const router = express.Router();
+const express = require("express");
+const router = express.Router();
 
-    const { createOrder, getAllOrders, getOrderById } = require("../controllers/orderController");
-    const auth = require("../middlewares/authMiddleware");
-    const admin = require("../middlewares/adminMiddleware");
-    const validateBody = require("../middlewares/validateBody");
-    const { orderValidationSchema } = require("../validations/orderValidation");
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus } = require("../controllers/orderController");
+const auth = require("../middlewares/authMiddleware");
+const admin = require("../middlewares/adminMiddleware");
 
-    router.post("/", auth, validateBody(orderValidationSchema), createOrder);
-    router.get("/", auth, admin, getAllOrders);
-    router.get("/:id", auth, getOrderById);
+router.post("/", auth, createOrder);
+router.get("/", auth, admin, getAllOrders);
+router.get("/:id", auth, getOrderById);
+router.put("/:id/status", auth, admin, updateOrderStatus);
 
-    module.exports = router;
+module.exports = router;

@@ -1,10 +1,12 @@
     const dotenv = require("dotenv");
     dotenv.config();
+
     const express = require("express");
     const cors = require("cors");
     const helmet = require("helmet");
     const connectDB = require("./config/db");
 
+    // CORS setup
     const corsOptions = {
     origin: ["http://localhost:5173", "https://pola-fullstack-1.onrender.com"],
     credentials: true,
@@ -27,7 +29,7 @@
     connectDB();
 
     // Middleware
-    app.use(cors(corsOptions));
+    app.use(cors(corsOptions)); // חייב לבוא לפני הראוטים
     app.use(express.json());
     app.use(helmet());
 
@@ -48,13 +50,13 @@
     res.send("POLA API is running...");
     });
 
-    // Global error handler
+    // Error handler
     app.use((err, req, res, next) => {
     console.error("Server error:", err.stack);
     res.status(500).json({ message: "Something went wrong on the server." });
     });
 
-    // Start the server
+    // Start server
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

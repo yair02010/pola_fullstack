@@ -1,9 +1,9 @@
-    // src/components/Navbar.jsx
     import { useCart } from "../contexts/CartContext";
     import { Link, useNavigate } from "react-router-dom";
     import { useState, useEffect } from "react";
     import { FiUser, FiLogOut, FiHeart, FiShoppingBag, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
     import { MdAdminPanelSettings } from "react-icons/md";
+    import { getProfile } from "../services/authService";
     import "../styles/Navbar.css";
 
     export default function Navbar() {
@@ -17,10 +17,7 @@
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
-        fetch("http://localhost:5000/api/auth/me", {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => res.json())
+        getProfile(token)
             .then((data) => setUser(data))
             .catch(() => setUser(null));
         }
@@ -54,9 +51,17 @@
             </button>
 
             <ul className={`pola-nav-links ${menuOpen ? "open" : ""}`}>
-            <li><Link to="/shop" className="pola-link" onClick={closeMenu}><FiShoppingBag /> Shop</Link></li>
+            <li>
+                <Link to="/shop" className="pola-link" onClick={closeMenu}>
+                <FiShoppingBag /> Shop
+                </Link>
+            </li>
             {user && (
-                <li><Link to="/wishlist" className="pola-link" onClick={closeMenu}><FiHeart /> Wishlist</Link></li>
+                <li>
+                <Link to="/wishlist" className="pola-link" onClick={closeMenu}>
+                    <FiHeart /> Wishlist
+                </Link>
+                </li>
             )}
             <li className="cart-icon">
                 <Link to="/cart" className="pola-link" onClick={closeMenu}>
@@ -67,8 +72,16 @@
 
             {!user ? (
                 <>
-                <li><Link to="/login" className="pola-btn outline" onClick={closeMenu}>Login</Link></li>
-                <li><Link to="/register" className="pola-btn filled" onClick={closeMenu}>Register</Link></li>
+                <li>
+                    <Link to="/login" className="pola-btn outline" onClick={closeMenu}>
+                    Login
+                    </Link>
+                </li>
+                <li>
+                    <Link to="/register" className="pola-btn filled" onClick={closeMenu}>
+                    Register
+                    </Link>
+                </li>
                 </>
             ) : (
                 <li className="pola-user">
@@ -77,21 +90,57 @@
                 </div>
                 {dropdownOpen && (
                     <ul className="dropdown-menu open">
-                    <li><Link to="/profile" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Profile</Link></li>
-                    <li><Link to="/wishlist" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Wishlist</Link></li>
-                    <li><Link to="/cart" onClick={() => { closeMenu(); setDropdownOpen(false); }}>My Cart</Link></li>
+                    <li>
+                        <Link to="/profile" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                        Profile
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/wishlist" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                        Wishlist
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/cart" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                        My Cart
+                        </Link>
+                    </li>
                     {user.role === "admin" && (
                         <>
                         <hr />
-                        <li><Link to="/admin/dashboard" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Admin Dashboard</Link></li>
-                        <li><Link to="/admin/products" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Manage Products</Link></li>
-                        <li><Link to="/admin/orders" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Manage Orders</Link></li>
-                        <li><Link to="/admin/categories" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Manage Categories</Link></li>
-                        <li><Link to="/admin/users" onClick={() => { closeMenu(); setDropdownOpen(false); }}>Manage Users</Link></li>
+                        <li>
+                            <Link to="/admin/dashboard" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                            Admin Dashboard
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/admin/products" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                            Manage Products
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/admin/orders" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                            Manage Orders
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/admin/categories" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                            Manage Categories
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/admin/users" onClick={() => { closeMenu(); setDropdownOpen(false); }}>
+                            Manage Users
+                            </Link>
+                        </li>
                         <hr />
                         </>
                     )}
-                    <li><button onClick={() => { handleLogout(); closeMenu(); }}>Logout</button></li>
+                    <li>
+                        <button onClick={() => { handleLogout(); closeMenu(); }}>
+                        Logout
+                        </button>
+                    </li>
                     </ul>
                 )}
                 </li>

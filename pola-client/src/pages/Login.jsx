@@ -16,7 +16,7 @@
         try {
         const data = await loginUser(values);
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user)); // ✅ שמירת משתמש
+        localStorage.setItem("user", JSON.stringify(data.user)); 
         if (data.user.role === "admin") {
             navigate("/admin/dashboard");
         } else {

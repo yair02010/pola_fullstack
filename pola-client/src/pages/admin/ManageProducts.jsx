@@ -1,8 +1,6 @@
-    // src/pages/admin/ManageProducts.jsx
-
     import { useEffect, useState } from "react";
-    import axios from "axios";
     import { Link } from "react-router-dom";
+    import { getAllProducts, deleteProduct } from "../../services/productService";
     import "../../styles/AdminProducts.css";
 
     export default function ManageProducts() {
@@ -16,8 +14,8 @@
 
     const fetchProducts = async () => {
         try {
-        const res = await axios.get("http://localhost:5000/api/products");
-        setProducts(res.data);
+        const data = await getAllProducts();
+        setProducts(data);
         } catch (err) {
         console.error("Failed to fetch products:", err);
         }
@@ -26,9 +24,7 @@
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this product?")) {
         try {
-            await axios.delete(`http://localhost:5000/api/products/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
+            await deleteProduct(id, token);
             fetchProducts();
         } catch (err) {
             console.error("Failed to delete product:", err);

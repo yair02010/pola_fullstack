@@ -1,12 +1,12 @@
-    // src/pages/admin/EditProduct.jsx
-
     import { useEffect, useState } from "react";
     import { useNavigate, useParams } from "react-router-dom";
     import { Formik, Form, Field, ErrorMessage } from "formik";
     import * as Yup from "yup";
-    import axios from "axios";
     import { toast } from "react-toastify";
     import "../../styles/AdminForms.css";
+
+    import { getProductById, updateProduct } from "../../services/productService";
+    import { fetchCategories } from "../../services/categoryService";
 
     const ProductSchema = Yup.object({
     name: Yup.string().required("Name is required"),
@@ -27,24 +27,24 @@
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        fetchProduct();
-        fetchCategories();
+        getProduct();
+        getCategories();
     }, []);
 
-    const fetchProduct = async () => {
+    const getProduct = async () => {
         try {
-        const res = await axios.get(`http://localhost:5000/api/products/${id}`);
-        setProduct(res.data);
+        const data = await getProductById(id);
+        setProduct(data);
         } catch (err) {
         console.error("Failed to load product", err);
         toast.error("Failed to load product");
         }
     };
 
-    const fetchCategories = async () => {
+    const getCategories = async () => {
         try {
-        const res = await axios.get("http://localhost:5000/api/categories");
-        setCategories(res.data);
+        const data = await fetchCategories();
+        setCategories(data);
         } catch (err) {
         console.error("Failed to fetch categories", err);
         toast.error("Failed to fetch categories");
@@ -72,9 +72,7 @@
             onSubmit={async (values) => {
             try {
                 const token = localStorage.getItem("token");
-                await axios.put(`http://localhost:5000/api/products/${id}`, values, {
-                headers: { Authorization: `Bearer ${token}` },
-                });
+                await updateProduct(id, values, token);
                 toast.success("Product updated successfully ✅");
                 navigate("/admin/products");
             } catch (err) {
@@ -149,9 +147,7 @@
 
                 <div className="form-check mb-3">
                 <Field type="checkbox" name="inStock" className="form-check-input" id="inStock" />
-                <label className="form-check-label" htmlFor="inStock">
-                    In Stock
-                </label>
+                <label className="form-check-label" htmlFor="inStock">In Stock</label>
                 </div>
 
                 <button type="submit" className="btn btn-dark w-100" disabled={isSubmitting}>

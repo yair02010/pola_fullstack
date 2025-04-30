@@ -1,12 +1,12 @@
-    // src/pages/admin/AddProduct.jsx
-
     import { useNavigate } from "react-router-dom";
     import { Formik, Form, Field, ErrorMessage } from "formik";
     import * as Yup from "yup";
-    import axios from "axios";
-    import "../../styles/AdminForms.css";
     import { toast } from "react-toastify";
     import { useEffect, useState } from "react";
+    import "../../styles/AdminForms.css";
+
+    import { fetchCategories } from "../../services/categoryService";
+    import { createProduct } from "../../services/productService";
 
     const ProductSchema = Yup.object({
     name: Yup.string().required("Name is required"),
@@ -24,24 +24,15 @@
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        fetchCategories();
+        fetchCategories()
+        .then(setCategories)
+        .catch((err) => console.error("Failed to load categories", err));
     }, []);
-
-    const fetchCategories = async () => {
-        try {
-        const res = await axios.get("http://localhost:5000/api/categories");
-        setCategories(res.data);
-        } catch (err) {
-        console.error("Failed to load categories", err);
-        }
-    };
 
     const handleSubmit = async (values, { setSubmitting }) => {
         try {
         const token = localStorage.getItem("token");
-        await axios.post("http://localhost:5000/api/products", values, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        await createProduct(values, token);
         toast.success("Product added successfully ✅");
         navigate("/admin/products");
         } catch (err) {

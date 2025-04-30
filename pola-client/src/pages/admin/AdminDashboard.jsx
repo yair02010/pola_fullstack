@@ -1,9 +1,9 @@
     import { useEffect, useState } from "react";
-    import axios from "axios";
     import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line, Legend
     } from "recharts";
+    import { getAdminSummaryData } from "../../services/adminService"; // 👈 ייבוא מתוקן
     import "../../styles/AdminDashboard.css";
 
     export default function AdminDashboard() {
@@ -20,16 +20,7 @@
     const fetchSummary = async () => {
         try {
         const token = localStorage.getItem("token");
-
-        const [productsRes, ordersRes, usersRes] = await Promise.all([
-            axios.get("http://localhost:5000/api/products"),
-            axios.get("http://localhost:5000/api/orders", { headers: { Authorization: `Bearer ${token}` } }),
-            axios.get("http://localhost:5000/api/users/all", { headers: { Authorization: `Bearer ${token}` } }),
-        ]);
-
-        const products = productsRes.data;
-        const orders = ordersRes.data;
-        const users = usersRes.data;
+        const { products, orders, users } = await getAdminSummaryData(token);
 
         const totalIncome = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
